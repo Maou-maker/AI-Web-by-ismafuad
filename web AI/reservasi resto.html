@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReservasiKu — Sistem Manajemen Restoran</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0f0e0c;
+    --surface:   #1a1916;
+    --surface2:  #242220;
+    --border:    #2e2c28;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6f2e;
+    --cream:     #f0ead8;
+    --muted:     #7a7568;
+    --green:     #4caf7a;
+    --red:       #e05c5c;
+    --blue:      #5c9fe0;
+    --orange:    #e09c5c;
+    --radius:    12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--gold); letter-spacing: 0.02em; }
+  .logo span { color: var(--cream); }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.75rem; color: var(--green);
+    font-family: 'DM Mono', monospace;
+    background: rgba(76,175,122,0.1); border: 1px solid rgba(76,175,122,0.3);
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  .date-display { font-size: 0.8rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 0;
+    padding: 0 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 14px 20px; font-size: 0.85rem; font-weight: 500;
+    color: var(--muted); cursor: pointer; border: none; background: none;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+  }
+  .tab:hover { color: var(--cream); }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── MAIN ── */
+  main { flex: 1; padding: 28px 32px; max-width: 1400px; width: 100%; margin: 0 auto; }
+  .panel { display: none; animation: fadeIn 0.25s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── STAT CARDS ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--gold-dim); }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.gold::before  { background: var(--gold); }
+  .stat-card.blue::before  { background: var(--blue); }
+  .stat-card.red::before   { background: var(--red); }
+  .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--cream); }
+  .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── GRID LAYOUT ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif; font-size: 1rem;
+    color: var(--gold); margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title span { font-size: 0.75rem; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+  /* ── TABLE MAP ── */
+  .table-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .table-item {
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 14px; text-align: center; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }
+  .table-item:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+  .table-item.available { border-color: rgba(76,175,122,0.4); background: rgba(76,175,122,0.05); }
+  .table-item.reserved  { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.05); }
+  .table-item.occupied  { border-color: rgba(224,92,92,0.4); background: rgba(224,92,92,0.05); }
+  .table-number { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: var(--cream); font-weight: 500; }
+  .table-cap { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+  .table-status-dot {
+    width: 8px; height: 8px; border-radius: 50%; margin: 8px auto 0;
+  }
+  .available .table-status-dot { background: var(--green); }
+  .reserved  .table-status-dot { background: var(--gold); }
+  .occupied  .table-status-dot { background: var(--red); }
+
+  /* ── RESERVATION LIST ── */
+  .res-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.15s;
+    border-radius: 6px; padding-left: 8px; padding-right: 8px;
+  }
+  .res-item:hover { background: var(--surface2); }
+  .res-item:last-child { border-bottom: none; }
+  .res-time {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    color: var(--gold); min-width: 90px;
+    background: rgba(201,168,76,0.08); padding: 4px 8px; border-radius: 6px;
+    text-align: center;
+  }
+  .res-info { flex: 1; }
+  .res-name { font-size: 0.9rem; font-weight: 500; color: var(--cream); }
+  .res-detail { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .badge {
+    font-size: 0.68rem; padding: 3px 9px; border-radius: 20px;
+    font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .badge.confirmed { background: rgba(76,175,122,0.15); color: var(--green); border: 1px solid rgba(76,175,122,0.3); }
+  .badge.pending   { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .badge.cancelled { background: rgba(224,92,92,0.15); color: var(--red); border: 1px solid rgba(224,92,92,0.3); }
+  .badge.waitlist  { background: rgba(92,159,224,0.15); color: var(--blue); border: 1px solid rgba(92,159,224,0.3); }
+  .badge.completed { background: rgba(122,117,104,0.2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ── WAITLIST ── */
+  .waitlist-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 8px; border-radius: 8px; margin-bottom: 6px;
+    background: rgba(92,159,224,0.05); border: 1px solid rgba(92,159,224,0.15);
+  }
+  .queue-num {
+    font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    color: var(--blue); min-width: 28px; text-align: center;
+    font-weight: 500;
+  }
+  .wl-info { flex: 1; }
+  .wl-name { font-size: 0.88rem; color: var(--cream); }
+  .wl-detail { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .promote-btn {
+    font-size: 0.72rem; padding: 5px 11px;
+    background: rgba(92,159,224,0.15); border: 1px solid rgba(92,159,224,0.4);
+    color: var(--blue); border-radius: 6px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .promote-btn:hover { background: rgba(92,159,224,0.3); }
+
+  /* ── FORM ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  input, select, textarea {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--cream); padding: 10px 13px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    transition: border-color 0.2s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold-dim); }
+  select option { background: var(--surface2); }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .btn {
+    padding: 10px 22px; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 500; cursor: pointer; border: none; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary {
+    background: var(--gold); color: #0f0e0c;
+  }
+  .btn-primary:hover { background: #dabb5e; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--gold-dim); color: var(--cream); }
+  .btn-danger { background: rgba(224,92,92,0.15); color: var(--red); border: 1px solid rgba(224,92,92,0.3); }
+  .btn-danger:hover { background: rgba(224,92,92,0.3); }
+  .btn-success { background: rgba(76,175,122,0.15); color: var(--green); border: 1px solid rgba(76,175,122,0.3); }
+  .btn-success:hover { background: rgba(76,175,122,0.3); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+
+  /* ── NOTIFICATION ── */
+  .notif-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 10px; border-radius: 8px; margin-bottom: 8px;
+    border-left: 3px solid transparent;
+  }
+  .notif-item.sent { border-left-color: var(--green); background: rgba(76,175,122,0.04); }
+  .notif-item.pending-notif { border-left-color: var(--gold); background: rgba(201,168,76,0.04); }
+  .notif-icon { font-size: 1.1rem; }
+  .notif-content { flex: 1; }
+  .notif-msg { font-size: 0.83rem; color: var(--cream); }
+  .notif-meta { font-size: 0.7rem; color: var(--muted); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+  /* ── MENU SECTION ── */
+  .menu-category { margin-bottom: 24px; }
+  .cat-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .menu-items-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .menu-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    transition: border-color 0.2s;
+  }
+  .menu-item:hover { border-color: var(--gold-dim); }
+  .menu-item-name { font-size: 0.85rem; color: var(--cream); }
+  .menu-item-price { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--gold); }
+  .menu-avail { width: 7px; height: 7px; border-radius: 50%; margin-left: 8px; }
+  .menu-avail.on { background: var(--green); }
+  .menu-avail.off { background: var(--red); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; width: 500px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
+    animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.9) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .modal-title {
+    font-family: 'Playfair Display', serif; font-size: 1.1rem;
+    color: var(--gold); margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .close-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.3rem; transition: color 0.2s; }
+  .close-btn:hover { color: var(--cream); }
+
+  /* ── TOAST ── */
+  .toast-container { position: fixed; top: 80px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 18px; font-size: 0.83rem;
+    color: var(--cream); min-width: 260px;
+    animation: toastIn 0.3s ease;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.warning { border-left: 3px solid var(--gold); }
+  .toast.error   { border-left: 3px solid var(--red); }
+  @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+  /* ── SECTION TITLE ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--cream); }
+  .section-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 16px; }
+  .tl-dot { position: absolute; left: -21px; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg); }
+  .tl-dot.green { background: var(--green); }
+  .tl-dot.gold  { background: var(--gold); }
+  .tl-dot.blue  { background: var(--blue); }
+  .tl-dot.red   { background: var(--red); }
+  .tl-time { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-bottom: 2px; }
+  .tl-text { font-size: 0.83rem; color: var(--cream); }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    main { padding: 16px; }
+    .stats { grid-template-columns: repeat(2,1fr); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .table-grid { grid-template-columns: repeat(2,1fr); }
+    .menu-items-list { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Reservasi<span>Ku</span></div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="date-display" id="dateDisplay"></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+  <button class="tab" onclick="switchTab('reservasi')">Reservasi</button>
+  <button class="tab" onclick="switchTab('meja')">Peta Meja</button>
+  <button class="tab" onclick="switchTab('waitlist')">Waitlist</button>
+  <button class="tab" onclick="switchTab('menu')">Menu</button>
+  <button class="tab" onclick="switchTab('notifikasi')">Notifikasi <span id="notifBadge" style="background:var(--red);color:#fff;border-radius:20px;padding:1px 6px;font-size:0.65rem;margin-left:4px;"></span></button>
+</div>
+
+<main>
+
+<!-- ── DASHBOARD ── -->
+<div class="panel active" id="panel-dashboard">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Selamat datang, Admin 👋</div>
+      <div class="section-sub">Ringkasan operasional hari ini</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-tambah')">+ Tambah Reservasi</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card green">
+      <div class="stat-label">Reservasi Hari Ini</div>
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-sub">Total booking masuk</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Terkonfirmasi</div>
+      <div class="stat-value" id="stat-confirmed">0</div>
+      <div class="stat-sub">Siap dilayani</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Menunggu Konfirmasi</div>
+      <div class="stat-value" id="stat-pending">0</div>
+      <div class="stat-sub">Perlu tindakan</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Waitlist</div>
+      <div class="stat-value" id="stat-waitlist">0</div>
+      <div class="stat-sub">Antrian aktif</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Reservasi Hari Ini <span id="res-count-label"></span></div>
+      <div id="dashboard-reservations"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Timeline Aktivitas <span>Log terkini</span></div>
+      <div class="timeline" id="activity-log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RESERVASI ── -->
+<div class="panel" id="panel-reservasi">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Manajemen Reservasi</div>
+      <div class="section-sub">Semua booking yang masuk</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-tambah')">+ Tambah Reservasi</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <select id="filter-status" onchange="renderReservasi()" style="flex:1">
+        <option value="">Semua Status</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div id="reservasi-list"></div>
+  </div>
+</div>
+
+<!-- ── MEJA ── -->
+<div class="panel" id="panel-meja">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Peta Meja</div>
+      <div class="section-sub">Status meja secara real-time</div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;font-size:0.75rem;color:var(--muted)">
+      <span>🟢 Tersedia</span>
+      <span>🟡 Direservasi</span>
+      <span>🔴 Terisi</span>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Denah Meja — Warung Nusantara</div>
+      <div class="table-grid" id="table-map"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Detail Meja <span id="selected-table-label">Pilih meja untuk detail</span></div>
+      <div id="table-detail">
+        <div style="text-align:center;padding:40px;color:var(--muted);font-size:0.85rem;">Klik meja untuk melihat detailnya</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── WAITLIST ── -->
+<div class="panel" id="panel-waitlist">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Waitlist</div>
+      <div class="section-sub">Antrian pelanggan yang menunggu meja</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Antrian Aktif <span id="wl-count"></span></div>
+      <div id="waitlist-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tambah ke Waitlist</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nama Pelanggan</label>
+          <input type="text" id="wl-name" placeholder="Nama lengkap">
+        </div>
+        <div class="form-group">
+          <label>No. HP</label>
+          <input type="text" id="wl-phone" placeholder="08xxxxxxxxx">
+        </div>
+        <div class="form-group">
+          <label>Waktu Preferensi</label>
+          <input type="time" id="wl-time" value="12:00">
+        </div>
+        <div class="form-group">
+          <label>Jumlah Tamu</label>
+          <input type="number" id="wl-guests" min="1" max="20" value="2">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addWaitlist()">Tambah ke Antrian</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MENU ── -->
+<div class="panel" id="panel-menu">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Daftar Menu</div>
+      <div class="section-sub">Menu yang tersedia di Warung Nusantara</div>
+    </div>
+  </div>
+  <div class="card" id="menu-list"></div>
+</div>
+
+<!-- ── NOTIFIKASI ── -->
+<div class="panel" id="panel-notifikasi">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Notifikasi</div>
+      <div class="section-sub">Log semua notifikasi pelanggan</div>
+    </div>
+    <button class="btn btn-secondary" onclick="markAllSent()">Tandai Semua Terkirim</button>
+  </div>
+  <div class="card" id="notifikasi-list"></div>
+</div>
+
+</main>
+
+<!-- ── MODAL TAMBAH RESERVASI ── -->
+<div class="modal-overlay" id="modal-tambah">
+  <div class="modal">
+    <div class="modal-title">
+      Tambah Reservasi Baru
+      <button class="close-btn" onclick="closeModal('modal-tambah')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nama Pelanggan</label>
+        <input type="text" id="f-name" placeholder="Nama lengkap">
+      </div>
+      <div class="form-group">
+        <label>No. HP</label>
+        <input type="text" id="f-phone" placeholder="08xxxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>Jumlah Tamu</label>
+        <input type="number" id="f-guests" min="1" max="20" value="2">
+      </div>
+      <div class="form-group">
+        <label>Jam Mulai</label>
+        <input type="time" id="f-start" value="12:00">
+      </div>
+      <div class="form-group">
+        <label>Jam Selesai</label>
+        <input type="time" id="f-end" value="14:00">
+      </div>
+      <div class="form-group">
+        <label>Pilih Meja</label>
+        <select id="f-table">
+          <option value="">-- Pilih Meja --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="f-status">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Permintaan Khusus</label>
+        <textarea id="f-special" placeholder="Ulang tahun, alergi makanan, dll..."></textarea>
+      </div>
+    </div>
+    <div id="form-warning" style="color:var(--red);font-size:0.8rem;margin-top:10px;display:none;padding:8px 12px;background:rgba(224,92,92,0.1);border-radius:6px;border:1px solid rgba(224,92,92,0.2);"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="submitReservasi()">Simpan Reservasi</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-tambah')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL DETAIL RESERVASI ── -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal">
+    <div class="modal-title">
+      Detail Reservasi
+      <button class="close-btn" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div id="modal-detail-content"></div>
+    <div class="btn-row" id="modal-detail-actions"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ════════════════════════════════════════
+//  DATA STORE (simulasi database)
+// ════════════════════════════════════════
+
+const restaurant = {
+  name: 'Warung Nusantara',
+  open: '10:00', close: '22:00'
+};
+
+const tables = [
+  { id: 1, number: 'A1', capacity: 2, location: 'Indoor',  status: 'available' },
+  { id: 2, number: 'A2', capacity: 2, location: 'Indoor',  status: 'available' },
+  { id: 3, number: 'B1', capacity: 4, location: 'Indoor',  status: 'reserved'  },
+  { id: 4, number: 'B2', capacity: 4, location: 'Indoor',  status: 'available' },
+  { id: 5, number: 'C1', capacity: 6, location: 'Outdoor', status: 'occupied'  },
+  { id: 6, number: 'VIP', capacity: 8, location: 'Private', status: 'available' },
+];
+
+let reservations = [
+  { id: 1, name: 'Budi Santoso',  phone: '08111000001', tableId: 3, date: today(), start: '12:00', end: '14:00', guests: 4, status: 'confirmed', special: 'Ulang tahun, siapkan lilin 🎂' },
+  { id: 2, name: 'Sari Dewi',     phone: '08111000002', tableId: 1, date: today(), start: '13:00', end: '15:00', guests: 2, status: 'confirmed', special: '' },
+  { id: 3, name: 'Andi Pratama',  phone: '08111000003', tableId: null, date: today(), start: '12:30', end: '14:30', guests: 3, status: 'pending',   special: 'Prefer indoor' },
+  { id: 4, name: 'Rina Kusuma',   phone: '08111000004', tableId: 5, date: today(), start: '11:00', end: '13:00', guests: 5, status: 'completed', special: '' },
+];
+
+let waitlistData = [
+  { id: 1, name: 'Andi Pratama', phone: '08111000003', time: '12:30', guests: 3, queue: 1, status: 'waiting' },
+  { id: 2, name: 'Deni Wijaya',  phone: '08111000005', time: '13:00', guests: 2, queue: 2, status: 'waiting' },
+];
+
+const menuData = {
+  'Makanan Utama': [
+    { name: 'Nasi Rawon', price: 35000, available: true },
+    { name: 'Ayam Bakar', price: 42000, available: true },
+    { name: 'Soto Lamongan', price: 28000, available: true },
+    { name: 'Nasi Goreng Spesial', price: 38000, available: false },
+  ],
+  'Minuman': [
+    { name: 'Es Teh Manis', price: 8000, available: true },
+    { name: 'Jus Alpukat', price: 18000, available: true },
+    { name: 'Es Jeruk', price: 10000, available: true },
+    { name: 'Kopi Susu', price: 22000, available: true },
+  ],
+  'Dessert': [
+    { name: 'Klepon', price: 15000, available: true },
+    { name: 'Es Campur', price: 22000, available: true },
+    { name: 'Pisang Goreng', price: 12000, available: false },
+  ]
+};
+
+let notifications = [
+  { id: 1, type: 'reservation_confirmed', customer: 'Budi Santoso', msg: 'Reservasi Anda untuk 4 orang pukul 12:00 telah dikonfirmasi. Meja B1 siap!', channel: 'whatsapp', sent: true, time: '09:15' },
+  { id: 2, type: 'reservation_confirmed', customer: 'Sari Dewi', msg: 'Reservasi Anda untuk 2 orang pukul 13:00 telah dikonfirmasi. Meja A1 siap!', channel: 'whatsapp', sent: true, time: '09:30' },
+  { id: 3, type: 'reservation_reminder', customer: 'Budi Santoso', msg: 'Pengingat: Reservasi Anda 30 menit lagi, pukul 12:00. Kami menunggu kedatangan Anda!', channel: 'whatsapp', sent: false, time: '11:30' },
+  { id: 4, type: 'waitlist_promoted', customer: 'Andi Pratama', msg: 'Kabar baik! Meja tersedia untuk Anda. Konfirmasi dalam 15 menit ya!', channel: 'whatsapp', sent: false, time: '' },
+];
+
+let activityLog = [
+  { time: '09:15', text: 'Reservasi Budi Santoso dikonfirmasi — Meja B1', color: 'green' },
+  { time: '09:30', text: 'Reservasi Sari Dewi dikonfirmasi — Meja A1', color: 'green' },
+  { time: '10:05', text: 'Rina Kusuma check-in — Meja C1', color: 'blue' },
+  { time: '10:12', text: 'Andi Pratama masuk waitlist — antrian #1', color: 'gold' },
+  { time: '10:45', text: 'Deni Wijaya masuk waitlist — antrian #2', color: 'gold' },
+];
+
+let nextId = 10;
+
+// ════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function fmtPrice(p) {
+  return 'Rp ' + p.toLocaleString('id-ID');
+}
+
+function fmtDate(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+function getTableById(id) { return tables.find(t => t.id === id); }
+function getResByTableDate(tableId, date, startT, endT, excludeId) {
+  return reservations.filter(r =>
+    r.tableId === tableId &&
+    r.date === date &&
+    r.id !== excludeId &&
+    r.status !== 'cancelled' &&
+    r.status !== 'completed' &&
+    r.start < endT &&
+    r.end > startT
+  );
+}
+
+function isTableAvailable(tableId, date, start, end, excludeId) {
+  return getResByTableDate(tableId, date, start, end, excludeId).length === 0;
+}
+
+// ════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  renderAll();
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-tambah') {
+    document.getElementById('f-date').value = today();
+    populateTableSelect();
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg, type='success') {
+  const icons = { success: '✅', warning: '⚠️', error: '❌' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]}</span> ${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function populateTableSelect() {
+  const sel = document.getElementById('f-table');
+  sel.innerHTML = '<option value="">-- Pilih Meja / Masuk Waitlist --</option>';
+  tables.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.text = `Meja ${t.number} (${t.capacity} orang) — ${t.location}`;
+    sel.appendChild(opt);
+  });
+}
+
+// ════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ════════════════════════════════════════
+
+function renderAll() {
+  renderStats();
+  renderDashboardRes();
+  renderActivityLog();
+  renderReservasi();
+  renderTableMap();
+  renderWaitlist();
+  renderMenu();
+  renderNotifikasi();
+}
+
+function renderStats() {
+  const todayRes = reservations.filter(r => r.date === today());
+  document.getElementById('stat-total').textContent     = todayRes.length;
+  document.getElementById('stat-confirmed').textContent = todayRes.filter(r => r.status === 'confirmed').length;
+  document.getElementById('stat-pending').textContent   = todayRes.filter(r => r.status === 'pending').length;
+  document.getElementById('stat-waitlist').textContent  = waitlistData.filter(w => w.status === 'waiting').length;
+
+  const unsent = notifications.filter(n => !n.sent).length;
+  const badge = document.getElementById('notifBadge');
+  badge.textContent = unsent > 0 ? unsent : '';
+}
+
+function resItemHTML(r, showActions = false) {
+  const t = r.tableId ? getTableById(r.tableId) : null;
+  const tableLabel = t ? `Meja ${t.number}` : '<span style="color:var(--orange)">Belum ada meja</span>';
+  return `
+    <div class="res-item" onclick="openDetail(${r.id})">
+      <div class="res-time">${r.start} – ${r.end}</div>
+      <div class="res-info">
+        <div class="res-name">${r.name}</div>
+        <div class="res-detail">${r.guests} tamu · ${tableLabel} · ${r.phone}</div>
+        ${r.special ? `<div class="res-detail" style="color:var(--gold);font-style:italic;margin-top:2px">${r.special}</div>` : ''}
+      </div>
+      <div class="badge ${r.status}">${r.status}</div>
+    </div>`;
+}
+
+function renderDashboardRes() {
+  const todayRes = reservations.filter(r => r.date === today()).sort((a,b) => a.start.localeCompare(b.start));
+  document.getElementById('res-count-label').textContent = todayRes.length + ' booking';
+  document.getElementById('dashboard-reservations').innerHTML = todayRes.length
+    ? todayRes.map(r => resItemHTML(r)).join('')
+    : '<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.85rem">Tidak ada reservasi hari ini</div>';
+}
+
+function renderActivityLog() {
+  document.getElementById('activity-log').innerHTML = [...activityLog].reverse().slice(0, 8).map(a => `
+    <div class="tl-item">
+      <div class="tl-dot ${a.color}"></div>
+      <div class="tl-time">${a.time}</div>
+      <div class="tl-text">${a.text}</div>
+    </div>`).join('');
+}
+
+function renderReservasi() {
+  const filter = document.getElementById('filter-status') ? document.getElementById('filter-status').value : '';
+  let list = [...reservations].sort((a,b) => a.start.localeCompare(b.start));
+  if (filter) list = list.filter(r => r.status === filter);
+  document.getElementById('reservasi-list').innerHTML = list.length
+    ? list.map(r => resItemHTML(r)).join('')
+    : '<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.85rem">Tidak ada data</div>';
+}
+
+function renderTableMap() {
+  // update table status based on current reservations
+  const now = new Date();
+  const nowTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  tables.forEach(t => {
+    const active = reservations.find(r =>
+      r.tableId === t.id && r.date === today() &&
+      r.start <= nowTime && r.end >= nowTime &&
+      r.status === 'confirmed'
+    );
+    const upcoming = reservations.find(r =>
+      r.tableId === t.id && r.date === today() &&
+      r.start > nowTime &&
+      (r.status === 'confirmed' || r.status === 'pending')
+    );
+    if (active) t.status = 'occupied';
+    else if (upcoming) t.status = 'reserved';
+    else if (t.status !== 'maintenance') t.status = 'available';
+  });
+
+  document.getElementById('table-map').innerHTML = tables.map(t => `
+    <div class="table-item ${t.status}" onclick="selectTable(${t.id})">
+      <div class="table-number">Meja ${t.number}</div>
+      <div class="table-cap">${t.capacity} kursi · ${t.location}</div>
+      <div class="table-status-dot"></div>
+    </div>`).join('');
+}
+
+function selectTable(id) {
+  const t = getTableById(id);
+  document.getElementById('selected-table-label').textContent = `Meja ${t.number}`;
+  const res = reservations.filter(r => r.tableId === id && r.date === today() && r.status !== 'cancelled');
+  document.getElementById('table-detail').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-size:1.2rem;font-family:'Playfair Display',serif;color:var(--cream);margin-bottom:6px">Meja ${t.number}</div>
+      <div style="font-size:0.8rem;color:var(--muted)">${t.capacity} kursi · ${t.location}</div>
+      <div class="badge ${t.status}" style="margin-top:8px;display:inline-block">${t.status}</div>
+    </div>
+    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:10px">Booking Hari Ini</div>
+    ${res.length ? res.map(r => `
+      <div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;border:1px solid var(--border)">
+        <div style="font-size:0.85rem;color:var(--cream);font-weight:500">${r.name}</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:3px">${r.start} – ${r.end} · ${r.guests} tamu</div>
+        <div class="badge ${r.status}" style="margin-top:6px;display:inline-block">${r.status}</div>
+      </div>`).join('') : '<div style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px">Tidak ada booking hari ini</div>'}
+  `;
+}
+
+function renderWaitlist() {
+  const active = waitlistData.filter(w => w.status === 'waiting');
+  document.getElementById('wl-count').textContent = active.length + ' antrian';
+  document.getElementById('waitlist-list').innerHTML = active.length
+    ? active.map(w => `
+      <div class="waitlist-item">
+        <div class="queue-num">#${w.queue}</div>
+        <div class="wl-info">
+          <div class="wl-name">${w.name}</div>
+          <div class="wl-detail">${w.guests} tamu · Preferensi ${w.time} · ${w.phone}</div>
+        </div>
+        <button class="promote-btn" onclick="promoteWaitlist(${w.id})">Promosikan</button>
+      </div>`).join('')
+    : '<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.85rem">Tidak ada antrian aktif</div>';
+}
+
+function renderMenu() {
+  let html = '';
+  for (const [cat, items] of Object.entries(menuData)) {
+    html += `<div class="menu-category">
+      <div class="cat-title">${cat}</div>
+      <div class="menu-items-list">
+        ${items.map(m => `
+          <div class="menu-item">
+            <div>
+              <div class="menu-item-name">${m.name}</div>
+            </div>
+            <div style="display:flex;align-items:center">
+              <div class="menu-item-price">${fmtPrice(m.price)}</div>
+              <div class="menu-avail ${m.available ? 'on' : 'off'}" title="${m.available ? 'Tersedia' : 'Habis'}"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  document.getElementById('menu-list').innerHTML = html;
+}
+
+function renderNotifikasi() {
+  const sorted = [...notifications].reverse();
+  document.getElementById('notifikasi-list').innerHTML = sorted.map(n => `
+    <div class="notif-item ${n.sent ? 'sent' : 'pending-notif'}">
+      <div class="notif-icon">${n.sent ? '✅' : '🔔'}</div>
+      <div class="notif-content">
+        <div class="notif-msg"><strong>${n.customer}</strong> — ${n.msg}</div>
+        <div class="notif-meta">${n.channel.toUpperCase()} · ${n.sent ? 'Terkirim ' + n.time : 'Belum terkirim'}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════
+//  ACTIONS
+// ════════════════════════════════════════
+
+function submitReservasi() {
+  const name    = document.getElementById('f-name').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const date    = document.getElementById('f-date').value;
+  const guests  = parseInt(document.getElementById('f-guests').value);
+  const start   = document.getElementById('f-start').value;
+  const end     = document.getElementById('f-end').value;
+  const tableId = parseInt(document.getElementById('f-table').value) || null;
+  const status  = document.getElementById('f-status').value;
+  const special = document.getElementById('f-special').value.trim();
+  const warn    = document.getElementById('form-warning');
+
+  // Validasi input
+  if (!name || !phone || !date || !start || !end) {
+    warn.textContent = '⚠️ Lengkapi semua field yang wajib diisi!';
+    warn.style.display = 'block';
+    return;
+  }
+  if (end <= start) {
+    warn.textContent = '⚠️ Jam selesai harus lebih besar dari jam mulai!';
+    warn.style.display = 'block';
+    return;
+  }
+
+  // Validasi konflik meja — INI YANG MENCEGAH DOUBLE BOOKING!
+  if (tableId) {
+    const conflict = !isTableAvailable(tableId, date, start, end, null);
+    if (conflict) {
+      const conflicting = getResByTableDate(tableId, date, start, end, null);
+      warn.textContent = `⚠️ Konflik! Meja ini sudah direservasi oleh ${conflicting.map(r => r.name).join(', ')} pada jam tersebut. Pilih meja lain atau masukkan ke waitlist.`;
+      warn.style.display = 'block';
+      return;
+    }
+
+    // Cek kapasitas meja
+    const tbl = getTableById(tableId);
+    if (tbl && guests > tbl.capacity) {
+      warn.textContent = `⚠️ Jumlah tamu (${guests}) melebihi kapasitas meja ${tbl.number} (${tbl.capacity} kursi)!`;
+      warn.style.display = 'block';
+      return;
+    }
+  }
+
+  warn.style.display = 'none';
+
+  // Simpan reservasi baru
+  const newRes = { id: nextId++, name, phone, tableId, date, start, end, guests, status, special };
+  reservations.push(newRes);
+
+  // Kalau tidak dapat meja, otomatis masuk waitlist
+  if (!tableId) {
+    const qNum = waitlistData.filter(w => w.status === 'waiting').length + 1;
+    waitlistData.push({ id: nextId++, name, phone, time: start, guests, queue: qNum, status: 'waiting' });
+    addActivity(`${name} masuk waitlist — antrian #${qNum}`, 'gold');
+    showToast(`${name} dimasukkan ke waitlist antrian #${qNum}`, 'warning');
+  } else {
+    const tbl = getTableById(tableId);
+    addActivity(`Reservasi baru: ${name} — Meja ${tbl.number} pukul ${start}`, status === 'confirmed' ? 'green' : 'gold');
+    showToast(`Reservasi ${name} berhasil disimpan!`, 'success');
+  }
+
+  // Tambah notifikasi
+  notifications.push({
+    id: nextId++,
+    type: 'reservation_confirmed',
+    customer: name,
+    msg: `Reservasi Anda untuk ${guests} orang pukul ${start} ${status === 'confirmed' ? 'telah dikonfirmasi' : 'sedang diproses'}.`,
+    channel: 'whatsapp',
+    sent: false,
+    time: ''
+  });
+
+  closeModal('modal-tambah');
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-special').value = '';
+  renderAll();
+}
+
+function openDetail(id) {
+  const r = reservations.find(x => x.id === id);
+  if (!r) return;
+  const t = r.tableId ? getTableById(r.tableId) : null;
+  document.getElementById('modal-detail-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div><div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Nama</div><div style="font-size:0.9rem">${r.name}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Telepon</div><div style="font-size:0.9rem">${r.phone}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Tanggal</div><div style="font-size:0.9rem">${fmtDate(r.date)}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Waktu</div><div style="font-size:0.9rem">${r.start} – ${r.end}</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Jumlah Tamu</div><div style="font-size:0.9rem">${r.guests} orang</div></div>
+      <div><div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Meja</div><div style="font-size:0.9rem">${t ? `Meja ${t.number} (${t.location})` : '<span style="color:var(--orange)">Belum ditentukan</span>'}</div></div>
+    </div>
+    ${r.special ? `<div style="padding:10px 12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;font-size:0.83rem;margin-bottom:16px;font-style:italic;color:var(--gold)">📝 ${r.special}</div>` : ''}
+    <div>Status saat ini: <span class="badge ${r.status}">${r.status}</span></div>
+  `;
+  const actions = document.getElementById('modal-detail-actions');
+  actions.innerHTML = '';
+  if (r.status === 'pending') {
+    const btn1 = document.createElement('button');
+    btn1.className = 'btn btn-success';
+    btn1.textContent = '✓ Konfirmasi';
+    btn1.onclick = () => changeStatus(id, 'confirmed');
+    actions.appendChild(btn1);
+  }
+  if (r.status !== 'cancelled' && r.status !== 'completed') {
+    const btn2 = document.createElement('button');
+    btn2.className = 'btn btn-danger';
+    btn2.textContent = '✕ Batalkan';
+    btn2.onclick = () => changeStatus(id, 'cancelled');
+    actions.appendChild(btn2);
+  }
+  if (r.status === 'confirmed') {
+    const btn3 = document.createElement('button');
+    btn3.className = 'btn btn-secondary';
+    btn3.textContent = '✓ Selesai';
+    btn3.onclick = () => changeStatus(id, 'completed');
+    actions.appendChild(btn3);
+  }
+  const btnClose = document.createElement('button');
+  btnClose.className = 'btn btn-secondary';
+  btnClose.textContent = 'Tutup';
+  btnClose.onclick = () => closeModal('modal-detail');
+  actions.appendChild(btnClose);
+  openModal('modal-detail');
+}
+
+function changeStatus(id, newStatus) {
+  const r = reservations.find(x => x.id === id);
+  if (!r) return;
+  r.status = newStatus;
+  const labels = { confirmed: 'dikonfirmasi', cancelled: 'dibatalkan', completed: 'selesai' };
+  addActivity(`Reservasi ${r.name} ${labels[newStatus]}`, newStatus === 'confirmed' ? 'green' : newStatus === 'cancelled' ? 'red' : 'blue');
+  showToast(`Status reservasi ${r.name} diubah ke ${newStatus}`, newStatus === 'cancelled' ? 'error' : 'success');
+  closeModal('modal-detail');
+  renderAll();
+}
+
+function addWaitlist() {
+  const name   = document.getElementById('wl-name').value.trim();
+  const phone  = document.getElementById('wl-phone').value.trim();
+  const time   = document.getElementById('wl-time').value;
+  const guests = parseInt(document.getElementById('wl-guests').value);
+  if (!name || !phone) { showToast('Isi nama dan nomor HP dulu!', 'error'); return; }
+  const qNum = waitlistData.filter(w => w.status === 'waiting').length + 1;
+  waitlistData.push({ id: nextId++, name, phone, time, guests, queue: qNum, status: 'waiting' });
+  addActivity(`${name} masuk waitlist — antrian #${qNum}`, 'gold');
+  showToast(`${name} berhasil masuk antrian #${qNum}!`, 'success');
+  document.getElementById('wl-name').value = '';
+  document.getElementById('wl-phone').value = '';
+  renderAll();
+}
+
+function promoteWaitlist(id) {
+  const w = waitlistData.find(x => x.id === id);
+  if (!w) return;
+  w.status = 'promoted';
+  notifications.push({
+    id: nextId++, type: 'waitlist_promoted', customer: w.name,
+    msg: `Kabar baik! Meja tersedia untuk Anda pukul ${w.time}. Konfirmasi dalam 15 menit ya!`,
+    channel: 'whatsapp', sent: false, time: ''
+  });
+  addActivity(`${w.name} dipromosikan dari waitlist`, 'green');
+  showToast(`${w.name} berhasil dipromosikan! Notifikasi dikirim.`, 'success');
+  // renumber
+  let q = 1;
+  waitlistData.filter(x => x.status === 'waiting').forEach(x => x.queue = q++);
+  renderAll();
+}
+
+function markAllSent() {
+  notifications.forEach(n => { if (!n.sent) { n.sent = true; n.time = new Date().toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}); } });
+  showToast('Semua notifikasi ditandai terkirim!', 'success');
+  renderAll();
+}
+
+function addActivity(text, color) {
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  activityLog.push({ time: t, text, color });
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+
+document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+renderAll();
+</script>
+</body>
+</html>

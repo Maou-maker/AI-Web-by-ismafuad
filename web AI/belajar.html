@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BelajarYuk! — Platform Belajar Interaktif</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f0f4ff;
+    --white:    #ffffff;
+    --ink:      #1e1b4b;
+    --ink2:     #4b5563;
+    --muted:    #9ca3af;
+    --border:   #e5e7eb;
+    --primary:  #6366f1;
+    --primary2: #818cf8;
+    --green:    #10b981;
+    --green-bg: #d1fae5;
+    --red:      #ef4444;
+    --red-bg:   #fee2e2;
+    --yellow:   #f59e0b;
+    --yellow-bg:#fef3c7;
+    --orange:   #f97316;
+    --pink:     #ec4899;
+    --blue:     #3b82f6;
+    --radius:   16px;
+    --shadow:   0 4px 20px rgba(99,102,241,0.12);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 200;
+    box-shadow: 0 2px 12px rgba(99,102,241,0.08);
+  }
+  .logo { font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: var(--primary); }
+  .logo span { color: var(--orange); }
+  .xp-bar { display: flex; align-items: center; gap: 10px; }
+  .xp-label { font-size: 0.8rem; font-weight: 700; color: var(--yellow); }
+  .xp-val { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--yellow); }
+  .streak { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 700; color: var(--orange); }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── HOME ── */
+  .home-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+  .home-hero {
+    text-align: center; margin-bottom: 36px;
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    border-radius: 24px; padding: 40px 28px; color: white;
+    position: relative; overflow: hidden;
+  }
+  .home-hero::before {
+    content: '🎓'; font-size: 6rem; position: absolute;
+    right: -10px; top: -10px; opacity: 0.15; line-height: 1;
+  }
+  .home-hero h1 { font-family: 'Fredoka One', cursive; font-size: 2.2rem; margin-bottom: 8px; }
+  .home-hero p { font-size: 1rem; opacity: 0.9; }
+
+  .mapel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .mapel-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 24px 20px; cursor: pointer; border: 2px solid transparent;
+    transition: all 0.2s; box-shadow: var(--shadow);
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .mapel-card:hover { transform: translateY(-4px); border-color: var(--primary2); box-shadow: 0 8px 30px rgba(99,102,241,0.2); }
+  .mapel-icon { font-size: 2.8rem; margin-bottom: 12px; }
+  .mapel-name { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--ink); margin-bottom: 4px; }
+  .mapel-count { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+  .mapel-progress {
+    height: 6px; background: var(--border); border-radius: 10px;
+    margin-top: 12px; overflow: hidden;
+  }
+  .mapel-progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
+  .mapel-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--yellow); color: white;
+    font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* ── LEVEL SELECT ── */
+  .level-wrap { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.85rem; font-weight: 700; color: var(--primary);
+    cursor: pointer; margin-bottom: 24px; padding: 8px 16px;
+    background: white; border-radius: 20px; border: 2px solid var(--primary2);
+    transition: all 0.15s;
+  }
+  .back-btn:hover { background: var(--primary); color: white; }
+
+  .level-header { text-align: center; margin-bottom: 28px; }
+  .level-icon { font-size: 3.5rem; margin-bottom: 10px; }
+  .level-title { font-family: 'Fredoka One', cursive; font-size: 1.8rem; color: var(--ink); }
+  .level-sub { font-size: 0.9rem; color: var(--ink2); margin-top: 4px; }
+
+  .levels-list { display: flex; flex-direction: column; gap: 12px; }
+  .level-item {
+    background: var(--white); border-radius: var(--radius);
+    padding: 18px 22px; cursor: pointer;
+    border: 2px solid var(--border); transition: all 0.2s;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .level-item:hover:not(.locked) { border-color: var(--primary); transform: translateX(4px); }
+  .level-item.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
+  .level-item.completed { border-color: var(--green); background: var(--green-bg); }
+  .level-num {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--primary); color: white;
+    font-family: 'Fredoka One', cursive; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .level-item.completed .level-num { background: var(--green); }
+  .level-item.locked .level-num { background: var(--muted); }
+  .level-info { flex: 1; }
+  .level-name { font-weight: 800; font-size: 0.95rem; color: var(--ink); }
+  .level-desc { font-size: 0.78rem; color: var(--ink2); margin-top: 2px; }
+  .level-stars { font-size: 1rem; }
+  .lock-icon { font-size: 1.2rem; color: var(--muted); }
+
+  /* ── QUIZ ── */
+  .quiz-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px; }
+  .quiz-topbar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+  }
+  .progress-wrap { flex: 1; }
+  .progress-label { font-size: 0.75rem; font-weight: 700; color: var(--ink2); margin-bottom: 4px; }
+  .progress-bar { height: 10px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; border-radius: 10px;
+    background: linear-gradient(90deg, var(--primary), var(--pink));
+    transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .quiz-counter { font-family: 'Fredoka One', cursive; font-size: 0.9rem; color: var(--primary); white-space: nowrap; }
+
+  .quiz-card {
+    background: var(--white); border-radius: 20px;
+    padding: 32px 28px; box-shadow: var(--shadow);
+    border: 2px solid var(--border); margin-bottom: 20px;
+    animation: cardIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes cardIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+  .q-type-badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .q-type-badge.pg  { background: #ede9fe; color: var(--primary); }
+  .q-type-badge.isian { background: #fef3c7; color: var(--yellow); }
+  .q-type-badge.bs  { background: #d1fae5; color: var(--green); }
+
+  .q-text {
+    font-size: 1.15rem; font-weight: 700; color: var(--ink);
+    line-height: 1.5; margin-bottom: 24px;
+  }
+
+  /* Pilihan ganda */
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn {
+    padding: 14px 18px; border-radius: 12px;
+    border: 2px solid var(--border); background: var(--white);
+    font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600;
+    color: var(--ink); cursor: pointer; text-align: left;
+    transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--primary2); background: #f5f3ff; transform: translateX(4px); }
+  .opt-btn.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .opt-btn.wrong   { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+  .opt-letter {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--border); display: flex; align-items: center;
+    justify-content: center; font-weight: 800; font-size: 0.8rem;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .opt-btn.correct .opt-letter { background: var(--green); color: white; }
+  .opt-btn.wrong   .opt-letter { background: var(--red); color: white; }
+
+  /* Isian */
+  .isian-wrap { display: flex; flex-direction: column; gap: 12px; }
+  .isian-input {
+    padding: 14px 18px; border-radius: 12px;
+    border: 2px solid var(--border); font-family: 'Nunito', sans-serif;
+    font-size: 1rem; font-weight: 600; color: var(--ink);
+    outline: none; transition: border-color 0.2s;
+    background: var(--bg);
+  }
+  .isian-input:focus { border-color: var(--primary); background: white; }
+  .isian-input.correct { border-color: var(--green); background: var(--green-bg); }
+  .isian-input.wrong   { border-color: var(--red); background: var(--red-bg); }
+  .submit-btn {
+    padding: 13px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    color: white; font-family: 'Nunito', sans-serif;
+    font-size: 1rem; font-weight: 800; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+
+  /* Benar/Salah */
+  .bs-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bs-btn {
+    padding: 20px; border-radius: 16px; border: 2px solid var(--border);
+    font-family: 'Fredoka One', cursive; font-size: 1.3rem;
+    cursor: pointer; transition: all 0.2s; background: var(--white);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .bs-btn:hover:not(:disabled) { transform: scale(1.04); }
+  .bs-btn.benar:hover:not(:disabled) { border-color: var(--green); background: var(--green-bg); }
+  .bs-btn.salah:hover:not(:disabled) { border-color: var(--red); background: var(--red-bg); }
+  .bs-btn.correct { border-color: var(--green); background: var(--green-bg); }
+  .bs-btn.wrong   { border-color: var(--red); background: var(--red-bg); }
+
+  /* Feedback */
+  .feedback {
+    border-radius: 12px; padding: 14px 18px;
+    font-size: 0.9rem; font-weight: 700; margin-top: 12px;
+    display: none; animation: popIn 0.25s ease;
+  }
+  @keyframes popIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+  .feedback.correct { background: var(--green-bg); color: #065f46; border: 2px solid var(--green); }
+  .feedback.wrong   { background: var(--red-bg); color: #991b1b; border: 2px solid var(--red); }
+
+  .next-btn {
+    width: 100%; padding: 15px; border-radius: 14px; border: none;
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    color: white; font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem; font-weight: 800; cursor: pointer;
+    transition: all 0.2s; display: none;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.4); }
+
+  /* ── RESULT ── */
+  .result-wrap {
+    max-width: 500px; margin: 40px auto; padding: 20px;
+    text-align: center;
+  }
+  .result-card {
+    background: white; border-radius: 24px;
+    padding: 40px 32px; box-shadow: var(--shadow);
+    border: 2px solid var(--border);
+  }
+  .result-emoji { font-size: 4rem; margin-bottom: 16px; }
+  .result-title { font-family: 'Fredoka One', cursive; font-size: 2rem; color: var(--ink); margin-bottom: 8px; }
+  .result-score { font-family: 'Fredoka One', cursive; font-size: 3.5rem; color: var(--primary); margin: 16px 0; }
+  .result-detail { font-size: 0.9rem; color: var(--ink2); margin-bottom: 24px; }
+  .result-xp {
+    background: var(--yellow-bg); border: 2px solid var(--yellow);
+    border-radius: 12px; padding: 12px 20px; margin-bottom: 24px;
+    font-weight: 800; color: var(--yellow); font-size: 1rem;
+  }
+  .result-actions { display: flex; gap: 10px; justify-content: center; }
+  .btn-retry {
+    padding: 12px 24px; border-radius: 12px;
+    border: 2px solid var(--primary); color: var(--primary);
+    background: transparent; font-family: 'Nunito', sans-serif;
+    font-weight: 800; cursor: pointer; font-size: 0.95rem;
+    transition: all 0.15s;
+  }
+  .btn-retry:hover { background: var(--primary); color: white; }
+  .btn-home-res {
+    padding: 12px 24px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    color: white; border: none;
+    font-family: 'Nunito', sans-serif; font-weight: 800;
+    cursor: pointer; font-size: 0.95rem; transition: all 0.15s;
+  }
+  .btn-home-res:hover { transform: translateY(-2px); }
+
+  /* ── CONFETTI ── */
+  .confetti-piece {
+    position: fixed; width: 10px; height: 10px;
+    border-radius: 2px; pointer-events: none; z-index: 9999;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
+  }
+
+  @media (max-width: 640px) {
+    .mapel-grid { grid-template-columns: repeat(2, 1fr); }
+    .bs-wrap { grid-template-columns: 1fr; }
+    .quiz-card { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Belajar<span>Yuk!</span></div>
+  <div class="xp-bar">
+    <div class="streak">🔥 <span id="streakVal">0</span></div>
+    <div class="xp-label">XP</div>
+    <div class="xp-val" id="xpVal">0</div>
+  </div>
+</header>
+
+<!-- ── SCREEN: HOME ── -->
+<div class="screen active" id="screen-home">
+  <div class="home-wrap">
+    <div class="home-hero">
+      <h1>Halo, Pelajar Hebat! 👋</h1>
+      <p>Pilih mata pelajaran dan mulai belajar sekarang. Selesaikan soal untuk membuka level berikutnya!</p>
+    </div>
+    <div class="mapel-grid" id="mapel-grid"></div>
+  </div>
+</div>
+
+<!-- ── SCREEN: LEVEL SELECT ── -->
+<div class="screen" id="screen-level">
+  <div class="level-wrap">
+    <div class="back-btn" onclick="goHome()">← Kembali</div>
+    <div class="level-header">
+      <div class="level-icon" id="lvl-icon"></div>
+      <div class="level-title" id="lvl-title"></div>
+      <div class="level-sub" id="lvl-sub"></div>
+    </div>
+    <div class="levels-list" id="levels-list"></div>
+  </div>
+</div>
+
+<!-- ── SCREEN: QUIZ ── -->
+<div class="screen" id="screen-quiz">
+  <div class="quiz-wrap">
+    <div class="quiz-topbar">
+      <div class="back-btn" onclick="goLevel()" style="margin-bottom:0;flex-shrink:0">←</div>
+      <div class="progress-wrap">
+        <div class="progress-label" id="progress-label"></div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="quiz-counter" id="quiz-counter"></div>
+    </div>
+    <div class="quiz-card" id="quiz-card"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Lanjut →</button>
+  </div>
+</div>
+
+<!-- ── SCREEN: RESULT ── -->
+<div class="screen" id="screen-result">
+  <div class="result-wrap">
+    <div class="result-card">
+      <div class="result-emoji" id="res-emoji"></div>
+      <div class="result-title" id="res-title"></div>
+      <div class="result-score" id="res-score"></div>
+      <div class="result-detail" id="res-detail"></div>
+      <div class="result-xp" id="res-xp"></div>
+      <div class="result-actions">
+        <button class="btn-retry" onclick="retryLevel()">🔁 Ulangi</button>
+        <button class="btn-home-res" onclick="goHome()">🏠 Menu Utama</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  BANK SOAL
+// ══════════════════════════════════════════
+
+const mapelData = [
+  {
+    id: 'matematika',
+    name: 'Matematika',
+    icon: '🔢',
+    color: '#6366f1',
+    badge: 'Perbanyak',
+    levels: [
+      {
+        name: 'Operasi Dasar',
+        desc: 'Penjumlahan, pengurangan, perkalian, pembagian',
+        soal: [
+          { type:'pg', q:'Berapa hasil dari 125 + 87?', opts:['202','212','312','222'], ans:1 },
+          { type:'pg', q:'Hasil dari 15 × 12 adalah...', opts:['170','180','175','185'], ans:1 },
+          { type:'isian', q:'Berapakah hasil dari 144 ÷ 12?', ans:'12' },
+          { type:'bs', q:'18 × 5 = 90', ans:true },
+          { type:'isian', q:'250 − 87 = ?', ans:'163' },
+          { type:'pg', q:'Nilai dari 2³ + 4² adalah...', opts:['22','24','26','28'], ans:1 },
+          { type:'bs', q:'7 adalah bilangan prima', ans:true },
+        ]
+      },
+      {
+        name: 'Pecahan & Desimal',
+        desc: 'Operasi pecahan, desimal, dan persen',
+        soal: [
+          { type:'pg', q:'1/2 + 1/4 = ?', opts:['2/6','3/4','1/3','3/6'], ans:1 },
+          { type:'pg', q:'0.75 sama dengan pecahan...', opts:['3/4','2/3','1/4','7/5'], ans:0 },
+          { type:'isian', q:'25% dari 200 adalah...', ans:'50' },
+          { type:'bs', q:'0.5 > 0.25', ans:true },
+          { type:'pg', q:'Hasil dari 3/4 × 8 adalah...', opts:['4','6','5','7'], ans:1 },
+          { type:'isian', q:'1.5 + 2.7 = ?', ans:'4.2' },
+        ]
+      },
+      {
+        name: 'Aljabar Dasar',
+        desc: 'Persamaan dan pertidaksamaan linear',
+        soal: [
+          { type:'pg', q:'Jika 2x + 4 = 10, maka x = ?', opts:['2','3','4','5'], ans:1 },
+          { type:'isian', q:'Jika 3x = 21, maka x = ?', ans:'7' },
+          { type:'bs', q:'x² + 2x + 1 = (x+1)²', ans:true },
+          { type:'pg', q:'Sederhanakan: 3a + 2b − a + 4b', opts:['2a+6b','4a+6b','2a+4b','4a+2b'], ans:0 },
+          { type:'isian', q:'Jika 5x − 3 = 22, maka x = ?', ans:'5' },
+          { type:'bs', q:'2x > 6 berarti x > 3', ans:true },
+        ]
+      },
+      {
+        name: 'Geometri',
+        desc: 'Bangun datar, luas, dan keliling',
+        soal: [
+          { type:'pg', q:'Luas persegi dengan sisi 8 cm adalah...', opts:['32 cm²','64 cm²','56 cm²','48 cm²'], ans:1 },
+          { type:'isian', q:'Keliling lingkaran dengan jari-jari 7 cm (π=22/7) adalah... cm', ans:'44' },
+          { type:'bs', q:'Luas segitiga = ½ × alas × tinggi', ans:true },
+          { type:'pg', q:'Volume kubus dengan sisi 5 cm adalah...', opts:['75 cm³','100 cm³','125 cm³','150 cm³'], ans:2 },
+          { type:'isian', q:'Luas persegi panjang 12cm × 7cm = ... cm²', ans:'84' },
+          { type:'bs', q:'Diagonal persegi membagi sudut menjadi 45°', ans:true },
+        ]
+      },
+      {
+        name: 'Statistika',
+        desc: 'Mean, median, modus, dan data',
+        soal: [
+          { type:'pg', q:'Mean dari data: 4, 6, 8, 10, 12 adalah...', opts:['7','8','9','10'], ans:1 },
+          { type:'isian', q:'Modus dari: 3, 5, 5, 7, 8, 5, 9 adalah...', ans:'5' },
+          { type:'bs', q:'Median adalah nilai tengah data yang sudah diurutkan', ans:true },
+          { type:'pg', q:'Median dari: 2, 4, 6, 8, 10 adalah...', opts:['4','5','6','7'], ans:2 },
+          { type:'isian', q:'Jangkauan dari: 5, 12, 3, 18, 7 adalah...', ans:'15' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'ipa',
+    name: 'IPA / Sains',
+    icon: '🔬',
+    color: '#10b981',
+    levels: [
+      {
+        name: 'Sel & Makhluk Hidup',
+        desc: 'Struktur sel dan ciri makhluk hidup',
+        soal: [
+          { type:'pg', q:'Organel sel yang berfungsi sebagai "pembangkit energi" adalah...', opts:['Ribosom','Mitokondria','Nukleus','Vakuola'], ans:1 },
+          { type:'bs', q:'Sel tumbuhan memiliki dinding sel, sel hewan tidak', ans:true },
+          { type:'pg', q:'Proses pembuatan makanan pada tumbuhan disebut...', opts:['Respirasi','Transpirasi','Fotosintesis','Fermentasi'], ans:2 },
+          { type:'isian', q:'Rumus kimia air adalah...', ans:'H2O' },
+          { type:'bs', q:'Virus termasuk makhluk hidup karena dapat berkembang biak', ans:true },
+        ]
+      },
+      {
+        name: 'Fisika Dasar',
+        desc: 'Gerak, gaya, dan energi',
+        soal: [
+          { type:'pg', q:'Satuan gaya dalam SI adalah...', opts:['Joule','Watt','Newton','Pascal'], ans:2 },
+          { type:'bs', q:'Kecepatan = jarak ÷ waktu', ans:true },
+          { type:'pg', q:'Hukum Newton I disebut juga hukum...', opts:['Aksi-Reaksi','Kelembaman','Percepatan','Gravitasi'], ans:1 },
+          { type:'isian', q:'Energi kinetik memiliki satuan...', ans:'Joule' },
+          { type:'bs', q:'Tekanan = gaya ÷ luas bidang', ans:true },
+        ]
+      },
+      {
+        name: 'Kimia Dasar',
+        desc: 'Unsur, senyawa, dan campuran',
+        soal: [
+          { type:'pg', q:'Simbol unsur Oksigen adalah...', opts:['Ok','Ox','O','Os'], ans:2 },
+          { type:'bs', q:'Air (H₂O) adalah senyawa, bukan unsur', ans:true },
+          { type:'pg', q:'Jumlah proton dalam atom disebut...', opts:['Nomor massa','Nomor atom','Elektron valensi','Periode'], ans:1 },
+          { type:'isian', q:'Rumus kimia garam dapur adalah...', ans:'NaCl' },
+          { type:'bs', q:'pH 7 bersifat netral', ans:true },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'ips',
+    name: 'IPS / Sejarah',
+    icon: '🌍',
+    color: '#f59e0b',
+    levels: [
+      {
+        name: 'Sejarah Indonesia',
+        desc: 'Kemerdekaan dan peristiwa penting',
+        soal: [
+          { type:'pg', q:'Indonesia memproklamasikan kemerdekaan pada tanggal...', opts:['17 Agustus 1945','17 Agustus 1949','20 Mei 1908','28 Oktober 1928'], ans:0 },
+          { type:'isian', q:'Siapa yang membacakan teks proklamasi kemerdekaan Indonesia?', ans:'Soekarno' },
+          { type:'bs', q:'Boedi Oetomo didirikan pada tahun 1908', ans:true },
+          { type:'pg', q:'Sumpah Pemuda diikrarkan pada tanggal...', opts:['17 Agustus 1945','28 Oktober 1928','20 Mei 1908','2 Mei 1926'], ans:1 },
+          { type:'bs', q:'Pancasila dirumuskan oleh Ir. Soekarno pada sidang BPUPKI', ans:true },
+        ]
+      },
+      {
+        name: 'Geografi',
+        desc: 'Bumi, peta, dan lingkungan',
+        soal: [
+          { type:'pg', q:'Garis khatulistiwa disebut juga...', opts:['Meridian','Ekuator','Tropic','Lintang Balik'], ans:1 },
+          { type:'bs', q:'Indonesia terletak di antara dua samudra: Hindia dan Pasifik', ans:true },
+          { type:'pg', q:'Skala peta 1:100.000 artinya 1 cm di peta = ... di lapangan', opts:['100 m','1 km','10 km','100 km'], ans:1 },
+          { type:'isian', q:'Ibu kota Indonesia adalah...', ans:'Jakarta' },
+          { type:'bs', q:'Gunung Everest adalah gunung tertinggi di dunia', ans:true },
+        ]
+      },
+      {
+        name: 'Ekonomi Dasar',
+        desc: 'Kebutuhan, produksi, dan konsumsi',
+        soal: [
+          { type:'pg', q:'Kebutuhan primer adalah kebutuhan yang...', opts:['Mewah','Paling mendasar','Tambahan','Keinginan'], ans:1 },
+          { type:'bs', q:'Inflasi adalah kenaikan harga barang secara umum dan terus-menerus', ans:true },
+          { type:'pg', q:'Hukum permintaan menyatakan: jika harga naik, permintaan...', opts:['Naik','Tetap','Turun','Tidak berpengaruh'], ans:2 },
+          { type:'isian', q:'Nilai barang yang dikorbankan untuk mendapatkan barang lain disebut biaya...', ans:'peluang' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'bind',
+    name: 'Bahasa Indonesia',
+    icon: '📝',
+    color: '#ef4444',
+    levels: [
+      {
+        name: 'Ejaan & Tata Bahasa',
+        desc: 'EYD, kata baku, dan kalimat efektif',
+        soal: [
+          { type:'pg', q:'Manakah penulisan kata baku yang benar?', opts:['Aktifitas','Aktivitas','Acktivitas','Aktifitas'], ans:1 },
+          { type:'bs', q:'"Analisa" adalah kata tidak baku, bentuk bakunya adalah "analisis"', ans:true },
+          { type:'pg', q:'Imbuhan "me-" pada kata "menulis" berfungsi sebagai...', opts:['Awalan','Akhiran','Sisipan','Konfiks'], ans:0 },
+          { type:'isian', q:'Kata "mempermasalahkan" berasal dari kata dasar...', ans:'masalah' },
+          { type:'bs', q:'Kalimat pasif ditandai dengan kata kerja berawalan "di-"', ans:true },
+        ]
+      },
+      {
+        name: 'Sastra & Puisi',
+        desc: 'Majas, pantun, dan karya sastra',
+        soal: [
+          { type:'pg', q:'"Badannya setinggi langit" adalah contoh majas...', opts:['Metafora','Simile','Hiperbola','Personifikasi'], ans:2 },
+          { type:'bs', q:'Pantun memiliki skema rima a-b-a-b', ans:true },
+          { type:'pg', q:'"Angin berbisik menyampaikan pesan" adalah majas...', opts:['Hiperbola','Personifikasi','Metafora','Alegori'], ans:1 },
+          { type:'isian', q:'Karya sastra berbentuk prosa panjang yang menceritakan kehidupan tokoh disebut...', ans:'novel' },
+          { type:'bs', q:'Haiku adalah bentuk puisi yang berasal dari Jepang', ans:true },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'bing',
+    name: 'Bahasa Inggris',
+    icon: '🇬🇧',
+    color: '#3b82f6',
+    levels: [
+      {
+        name: 'Grammar Dasar',
+        desc: 'Tenses, verb, dan sentence structure',
+        soal: [
+          { type:'pg', q:'She ___ to school every day. (Simple Present)', opts:['go','goes','going','went'], ans:1 },
+          { type:'bs', q:'"Yesterday I go to market" adalah kalimat yang salah', ans:true },
+          { type:'pg', q:'"I am reading a book" menggunakan tense...', opts:['Simple Present','Present Perfect','Present Continuous','Past Continuous'], ans:2 },
+          { type:'isian', q:'Past tense dari kata "eat" adalah...', ans:'ate' },
+          { type:'bs', q:'Plural dari "child" adalah "children"', ans:true },
+          { type:'pg', q:'Kalimat pasif dari "She writes a letter" adalah...', opts:['A letter write by her','A letter is written by her','A letter was written by her','A letter written by her'], ans:1 },
+        ]
+      },
+      {
+        name: 'Vocabulary',
+        desc: 'Kosakata dan artinya',
+        soal: [
+          { type:'pg', q:'"Benevolent" artinya...', opts:['Jahat','Baik hati','Berani','Cerdas'], ans:1 },
+          { type:'bs', q:'"Enormous" berarti sangat besar', ans:true },
+          { type:'pg', q:'Antonim dari kata "ancient" adalah...', opts:['Old','Historic','Modern','Classic'], ans:2 },
+          { type:'isian', q:'Terjemahan dari "to give up" adalah...', ans:'menyerah' },
+          { type:'bs', q:'"Ambiguous" berarti memiliki dua makna atau lebih', ans:true },
+        ]
+      },
+      {
+        name: 'Reading Comprehension',
+        desc: 'Memahami teks bahasa Inggris',
+        soal: [
+          { type:'pg', q:'What is the synonym of "happy"?', opts:['Sad','Joyful','Angry','Tired'], ans:1 },
+          { type:'bs', q:'"The cat sat on the mat" — the subject is "cat"', ans:true },
+          { type:'pg', q:'"Despite the rain, she went outside." The word "despite" shows...', opts:['Cause','Effect','Contrast','Addition'], ans:2 },
+          { type:'isian', q:'The opposite of "strong" is...', ans:'weak' },
+          { type:'bs', q:'A "paragraph" typically focuses on one main idea', ans:true },
+        ]
+      },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let state = {
+  xp: parseInt(localStorage.getItem('byuk_xp') || '0'),
+  streak: parseInt(localStorage.getItem('byuk_streak') || '0'),
+  completed: JSON.parse(localStorage.getItem('byuk_completed') || '{}'),
+  currentMapel: null,
+  currentLevel: null,
+  currentSoal: [],
+  currentIdx: 0,
+  correct: 0,
+  answered: false,
+};
+
+function save() {
+  localStorage.setItem('byuk_xp', state.xp);
+  localStorage.setItem('byuk_streak', state.streak);
+  localStorage.setItem('byuk_completed', JSON.stringify(state.completed));
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goHome() { renderHome(); showScreen('home'); }
+function goLevel() { renderLevel(state.currentMapel); showScreen('level'); }
+
+// ══════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════
+function renderHome() {
+  document.getElementById('xpVal').textContent = state.xp;
+  document.getElementById('streakVal').textContent = state.streak;
+
+  document.getElementById('mapel-grid').innerHTML = mapelData.map(m => {
+    const total = m.levels.length;
+    const done  = m.levels.filter((_, i) => state.completed[m.id + '_' + i]).length;
+    const pct   = Math.round((done / total) * 100);
+    return `
+      <div class="mapel-card" onclick="renderLevel('${m.id}')">
+        ${m.badge ? `<div class="mapel-badge">⭐ ${m.badge}</div>` : ''}
+        <div class="mapel-icon">${m.icon}</div>
+        <div class="mapel-name">${m.name}</div>
+        <div class="mapel-count">${done}/${total} level selesai</div>
+        <div class="mapel-progress">
+          <div class="mapel-progress-fill" style="width:${pct}%;background:${m.color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  LEVEL SELECT
+// ══════════════════════════════════════════
+function renderLevel(mapelId) {
+  const m = mapelData.find(x => x.id === mapelId);
+  state.currentMapel = mapelId;
+  document.getElementById('lvl-icon').textContent = m.icon;
+  document.getElementById('lvl-title').textContent = m.name;
+  document.getElementById('lvl-sub').textContent = m.levels.length + ' level tersedia';
+
+  document.getElementById('levels-list').innerHTML = m.levels.map((lv, i) => {
+    const key  = mapelId + '_' + i;
+    const done = state.completed[key];
+    const locked = i > 0 && !state.completed[mapelId + '_' + (i-1)];
+    const stars = done ? '⭐⭐⭐' : '';
+    return `
+      <div class="level-item ${done ? 'completed' : ''} ${locked ? 'locked' : ''}"
+           onclick="${locked ? '' : `startLevel('${mapelId}', ${i})`}">
+        <div class="level-num" style="${!locked && !done ? 'background:' + m.color : ''}">${done ? '✓' : locked ? '🔒' : i+1}</div>
+        <div class="level-info">
+          <div class="level-name">${lv.name}</div>
+          <div class="level-desc">${lv.desc} · ${lv.soal.length} soal</div>
+        </div>
+        <div>${locked ? '<span class="lock-icon">🔒</span>' : stars}</div>
+      </div>`;
+  }).join('');
+
+  showScreen('level');
+}
+
+// ══════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════
+function startLevel(mapelId, levelIdx) {
+  const m  = mapelData.find(x => x.id === mapelId);
+  const lv = m.levels[levelIdx];
+  state.currentMapel = mapelId;
+  state.currentLevel = levelIdx;
+  state.currentSoal  = [...lv.soal].sort(() => Math.random() - 0.5);
+  state.currentIdx   = 0;
+  state.correct      = 0;
+  state.answered     = false;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const soal = state.currentSoal;
+  const idx  = state.currentIdx;
+  const q    = soal[idx];
+  const pct  = Math.round((idx / soal.length) * 100);
+
+  document.getElementById('progress-label').textContent = `Level ${state.currentLevel + 1}`;
+  document.getElementById('progress-fill').style.width  = pct + '%';
+  document.getElementById('quiz-counter').textContent   = `${idx + 1}/${soal.length}`;
+  document.getElementById('feedback').style.display     = 'none';
+  document.getElementById('next-btn').style.display     = 'none';
+  state.answered = false;
+
+  const typeLabel = { pg:'Pilihan Ganda', isian:'Isian', bs:'Benar / Salah' };
+  const typeClass = { pg:'pg', isian:'isian', bs:'bs' };
+
+  let answerHTML = '';
+  if (q.type === 'pg') {
+    const letters = ['A','B','C','D'];
+    answerHTML = `<div class="options-list">${q.opts.map((o, i) =>
+      `<button class="opt-btn" onclick="answerPG(${i})" id="opt-${i}">
+        <div class="opt-letter">${letters[i]}</div>${o}
+      </button>`).join('')}</div>`;
+  } else if (q.type === 'isian') {
+    answerHTML = `<div class="isian-wrap">
+      <input class="isian-input" id="isian-input" type="text" placeholder="Ketik jawabanmu..." autocomplete="off">
+      <button class="submit-btn" onclick="answerIsian()">Jawab ✓</button>
+    </div>`;
+  } else if (q.type === 'bs') {
+    answerHTML = `<div class="bs-wrap">
+      <button class="bs-btn benar" onclick="answerBS(true)" id="bs-true">✅<span style="font-size:0.75rem;font-family:'Nunito',sans-serif">BENAR</span></button>
+      <button class="bs-btn salah" onclick="answerBS(false)" id="bs-false">❌<span style="font-size:0.75rem;font-family:'Nunito',sans-serif">SALAH</span></button>
+    </div>`;
+  }
+
+  document.getElementById('quiz-card').innerHTML = `
+    <div class="q-type-badge ${typeClass[q.type]}">${typeLabel[q.type]}</div>
+    <div class="q-text">${q.q}</div>
+    ${answerHTML}`;
+
+  if (q.type === 'isian') {
+    setTimeout(() => {
+      const inp = document.getElementById('isian-input');
+      if (inp) {
+        inp.focus();
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') answerIsian(); });
+      }
+    }, 100);
+  }
+}
+
+function showFeedback(correct, correctAns) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback ' + (correct ? 'correct' : 'wrong');
+  fb.innerHTML = correct
+    ? `🎉 Benar! ${['+10 XP','Luar biasa! +10 XP','Tepat sekali! +10 XP'][Math.floor(Math.random()*3)]}`
+    : `😅 Kurang tepat. Jawaban yang benar: <strong>${correctAns}</strong>`;
+  fb.style.display = 'block';
+  document.getElementById('next-btn').style.display = 'block';
+  if (correct) { state.correct++; state.xp += 10; }
+  document.getElementById('xpVal').textContent = state.xp;
+}
+
+function answerPG(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = state.currentSoal[state.currentIdx];
+  const correct = idx === q.ans;
+  document.querySelectorAll('.opt-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.ans) b.classList.add('correct');
+    else if (i === idx && !correct) b.classList.add('wrong');
+  });
+  showFeedback(correct, q.opts[q.ans]);
+}
+
+function answerIsian() {
+  if (state.answered) return;
+  const inp = document.getElementById('isian-input');
+  if (!inp || !inp.value.trim()) return;
+  state.answered = true;
+  const q = state.currentSoal[state.currentIdx];
+  const userAns = inp.value.trim().toLowerCase();
+  const correct = userAns === q.ans.toLowerCase();
+  inp.disabled = true;
+  inp.classList.add(correct ? 'correct' : 'wrong');
+  showFeedback(correct, q.ans);
+}
+
+function answerBS(val) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = state.currentSoal[state.currentIdx];
+  const correct = val === q.ans;
+  document.getElementById('bs-true').disabled  = true;
+  document.getElementById('bs-false').disabled = true;
+  if (q.ans === true)  document.getElementById('bs-true').classList.add('correct');
+  else                 document.getElementById('bs-false').classList.add('correct');
+  if (!correct) {
+    if (val === true) document.getElementById('bs-true').classList.add('wrong');
+    else              document.getElementById('bs-false').classList.add('wrong');
+  }
+  showFeedback(correct, q.ans ? 'Benar ✅' : 'Salah ❌');
+}
+
+function nextQuestion() {
+  state.currentIdx++;
+  if (state.currentIdx >= state.currentSoal.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ══════════════════════════════════════════
+//  RESULT
+// ══════════════════════════════════════════
+function showResult() {
+  const total   = state.currentSoal.length;
+  const correct = state.correct;
+  const pct     = Math.round((correct / total) * 100);
+  const passed  = pct >= 60;
+
+  if (passed) {
+    const key = state.currentMapel + '_' + state.currentLevel;
+    state.completed[key] = true;
+    state.streak++;
+    if (pct === 100) state.xp += 50; // bonus perfect
+    confetti();
+  }
+  save();
+
+  const emojis = pct === 100 ? '🏆' : pct >= 80 ? '🌟' : pct >= 60 ? '😊' : '😅';
+  const titles = pct === 100 ? 'Sempurna!' : pct >= 80 ? 'Hebat!' : pct >= 60 ? 'Lulus!' : 'Semangat!';
+
+  document.getElementById('res-emoji').textContent  = emojis;
+  document.getElementById('res-title').textContent  = titles;
+  document.getElementById('res-score').textContent  = pct + '%';
+  document.getElementById('res-detail').textContent = `${correct} dari ${total} soal benar`;
+  document.getElementById('res-xp').textContent     = `+${correct * 10}${pct === 100 ? ' + 50 bonus' : ''} XP didapat!`;
+  document.getElementById('xpVal').textContent      = state.xp;
+  document.getElementById('streakVal').textContent  = state.streak;
+
+  showScreen('result');
+}
+
+function retryLevel() { startLevel(state.currentMapel, state.currentLevel); }
+
+// ══════════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════════
+function confetti() {
+  const colors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#f97316'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left:${Math.random()*100}vw;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-duration:${1.5 + Math.random()*2}s;
+        animation-delay:${Math.random()*0.5}s;
+        transform:rotate(${Math.random()*360}deg);
+        width:${6+Math.random()*8}px;
+        height:${6+Math.random()*8}px;
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }, i * 30);
+  }
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>
