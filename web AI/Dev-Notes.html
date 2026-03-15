@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev-Notes Previewer - Gemini</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #111111;
+            --panel: #1a1a1a;
+            --accent: #00d2ff;
+            --text: #e0e0e0;
+            --border: #333;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 15px 25px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .editor-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        textarea, .preview {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            border: none;
+            outline: none;
+            line-height: 1.6;
+        }
+
+        textarea {
+            background: var(--bg);
+            color: #9cdcfe;
+            resize: none;
+            border-right: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .preview {
+            background: var(--panel);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Styling Markdown Result */
+        .preview h1, .preview h2 { color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .preview code { background: #333; padding: 2px 6px; border-radius: 4px; color: #f8c555; }
+        .preview pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; }
+        .preview blockquote { border-left: 4px solid var(--accent); padding-left: 15px; color: #aaa; font-style: italic; }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+
+        .btn:hover { background: var(--accent); color: #000; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Dev-Notes // Previewer</h1>
+    <div class="toolbar">
+        <button class="btn" onclick="clearEditor()">Clear</button>
+        <button class="btn" onclick="copyResult()">Copy HTML</button>
+    </div>
+</header>
+
+<div class="editor-container">
+    <textarea id="editor" placeholder="Tulis ide novel atau dokumentasi kodingmu di sini (Format Markdown)..."></textarea>
+    <div id="preview" class="preview"></div>
+</div>
+
+<script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+
+    // Default Content
+    const welcomeText = `# Judul Catatan\n\nSelamat datang di **Dev-Notes**! \n\nKamu bisa menulis dengan format Markdown:\n- **Teks Tebal**\n- *Teks Miring*\n- [Link Ke Web Kamu](https://maou-maker.github.io/AI-Web-by-ismafuad/)\n\n> "Menulislah seolah-olah kamu sedang membangun dunia."\n\n\`\`\`javascript\nfunction salam() {\n  console.log("Halo, Admin!");\n}\n\`\`\``;
+
+    editor.value = welcomeText;
+    updatePreview();
+
+    editor.addEventListener('input', updatePreview);
+
+    function updatePreview() {
+        const text = editor.value;
+        preview.innerHTML = marked.parse(text);
+    }
+
+    function clearEditor() {
+        if(confirm('Hapus semua teks?')) {
+            editor.value = '';
+            updatePreview();
+        }
+    }
+
+    function copyResult() {
+        navigator.clipboard.writeText(preview.innerHTML);
+        alert('HTML hasil render berhasil disalin!');
+    }
+</script>
+
+</body>
+</html>
