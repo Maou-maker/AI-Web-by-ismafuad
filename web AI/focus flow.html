@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Flow - Gemini</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #8b5cf6;
+            --glass: rgba(255, 255, 255, 0.05);
+            --text: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #050505 100%);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            width: 350px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .timer-display {
+            font-size: 5rem;
+            font-weight: 800;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+            background: linear-gradient(to bottom, #fff, #a78bfa);
+            -webkit-background-clip: text; /* Kuning lagi nih, tapi aman! */
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mode-label {
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .controls-btn {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: var(--accent);
+            border: none;
+            padding: 12px 25px;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s ease;
+        }
+
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3); }
+        button:active { transform: scale(0.95); }
+        .btn-outline { background: transparent; border: 1px solid var(--accent); }
+
+        .ambient-box {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+
+        .sound-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .sound-btn {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .sound-btn.active { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="mode-label" id="modeStatus">Work Session</div>
+    <div class="timer-display" id="timer">25:00</div>
+
+    <div class="controls-btn">
+        <button id="startBtn">START</button>
+        <button id="resetBtn" class="btn-outline">RESET</button>
+    </div>
+
+    <div class="ambient-box">
+        <div style="font-size: 0.9rem; margin-bottom: 10px;">Zen Ambience</div>
+        <div class="sound-grid">
+            <div class="sound-btn" onclick="toggleSound('rain', this)">🌧️ Rain</div>
+            <div class="sound-btn" onclick="toggleSound('cafe', this)">☕ Cafe</div>
+        </div>
+    </div>
+</div>
+
+<audio id="rainAudio" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" style="display:none;"></audio>
+<audio id="cafeAudio" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" style="display:none;"></audio>
+
+<script>
+    let timeLeft = 25 * 60;
+    let timerId = null;
+    let isWork = true;
+
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const modeStatus = document.getElementById('modeStatus');
+
+    function updateDisplay() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        document.title = `(${timerDisplay.textContent}) Focus Flow`;
+    }
+
+    startBtn.addEventListener('click', () => {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+            startBtn.textContent = 'START';
+        } else {
+            startBtn.textContent = 'PAUSE';
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    alert(isWork ? 'Waktunya Istirahat!' : 'Kembali Fokus!');
+                    toggleMode();
+                }
+            }, 1000);
+        }
+    });
+
+    function toggleMode() {
+        isWork = !isWork;
+        timeLeft = (isWork ? 25 : 5) * 60;
+        modeStatus.textContent = isWork ? 'Work Session' : 'Short Break';
+        updateDisplay();
+        startBtn.textContent = 'START';
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        clearInterval(timerId);
+        timerId = null;
+        timeLeft = 25 * 60;
+        isWork = true;
+        modeStatus.textContent = 'Work Session';
+        startBtn.textContent = 'START';
+        updateDisplay();
+    });
+
+    function toggleSound(type, el) {
+        const audio = document.getElementById(type + 'Audio');
+        if (audio.paused) {
+            audio.play();
+            el.classList.add('active');
+        } else {
+            audio.pause();
+            el.classList.remove('active');
+        }
+    }
+</script>
+
+</body>
+</html>
