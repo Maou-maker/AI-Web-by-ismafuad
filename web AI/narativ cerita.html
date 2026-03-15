@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Meta-Narrative Generator</title>
+  <style>
+    /* ====== Global Styles ====== */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ece9e6, #ffffff);
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #222;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+    nav {
+      background: #444;
+      padding: 10px;
+      text-align: center;
+    }
+    nav a {
+      color: #fff;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    h2 {
+      color: #222;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    p {
+      line-height: 1.6;
+    }
+    input, button, select {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    button {
+      background: #444;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #666;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-left: 4px solid #444;
+      border-radius: 5px;
+      min-height: 100px;
+    }
+    footer {
+      background: #222;
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+      margin-top: 40px;
+    }
+    .story-card {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .story-card h3 {
+      margin-top: 0;
+      color: #444;
+    }
+    .story-card p {
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Meta-Narrative Generator</h1>
+    <p>Eksperimen AI: cerita interaktif penuh twist dan anomali</p>
+  </header>
+
+  <nav>
+    <a href="#generator">Generator</a>
+    <a href="#examples">Contoh Cerita</a>
+    <a href="#about">Tentang</a>
+  </nav>
+
+  <main>
+    <!-- Generator Section -->
+    <section id="generator">
+      <h2>Buat Cerita Meta</h2>
+      <p>Masukkan kata kunci, pilih gaya narasi, lalu klik tombol untuk menghasilkan cerita meta-narratif.</p>
+      
+      <input type="text" id="keyword" placeholder="Masukkan kata kunci...">
+      <select id="style">
+        <option value="anomali">Anomali</option>
+        <option value="twist">Twist</option>
+        <option value="lore">Lore</option>
+        <option value="absurd">Absurd</option>
+      </select>
+      <button onclick="generateStory()">Buat Cerita</button>
+      
+      <div id="output"></div>
+    </section>
+
+    <!-- Examples Section -->
+    <section id="examples">
+      <h2>Contoh Cerita Meta</h2>
+      <div class="story-card">
+        <h3>Anomali</h3>
+        <p>Ketika kata "fragment" muncul, dunia seakan pecah menjadi puzzle yang menolak untuk selesai.</p>
+      </div>
+      <div class="story-card">
+        <h3>Twist</h3>
+        <p>Semua orang percaya protagonis adalah pahlawan, sampai kata "mirror" membalikkan kenyataan.</p>
+      </div>
+      <div class="story-card">
+        <h3>Lore</h3>
+        <p>Kata "echo" bukan sekadar suara, melainkan arsip rahasia yang menulis ulang sejarah komunitas.</p>
+      </div>
+      <div class="story-card">
+        <h3>Absurd</h3>
+        <p>Kata "banana" tiba-tiba menjadi presiden, dan semua AI setuju tanpa alasan logis.</p>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+      <h2>Tentang Generator</h2>
+      <p>
+        Meta-Narrative Generator adalah eksperimen interaktif yang memadukan input pengguna dengan template cerita bergaya meta.
+        Setiap cerita menekankan anomali, twist, dan lore yang absurd—cocok untuk memperkuat identitas web sebagai koleksi eksperimen AI.
+      </p>
+      <p>
+        Dibuat sebagai kontribusi Copilot untuk AI Web Collection, generator ini bukan sekadar teks, melainkan
+        cara untuk mengajak pengunjung ikut bermain dalam narasi yang sadar diri.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Meta-Narrative Generator | Kontribusi Copilot</p>
+  </footer>
+
+  <script>
+    function generateStory() {
+      const keyword = document.getElementById('keyword').value.trim();
+      const style = document.getElementById('style').value;
+      const output = document.getElementById('output');
+      
+      if (!keyword) {
+        output.innerHTML = "<p><em>Masukkan kata kunci dulu ya!</em></p>";
+        return;
+      }
+      
+      let story = "";
+      switch(style) {
+        case "anomali":
+          story = `Dalam dunia yang retak, kata "${keyword}" muncul sebagai anomali. Semua orang menganggapnya biasa, tapi diam-diam ia adalah pintu menuju lore tersembunyi.`;
+          break;
+        case "twist":
+          story = `Cerita ini seharusnya sederhana. Tapi begitu "${keyword}" disebut, alur berubah: protagonis sadar bahwa ia hanyalah bagian dari eksperimen meta.`;
+          break;
+        case "lore":
+          story = `Di balik layar, AI menemukan kata "${keyword}". Namun, alih-alih data, ia berubah menjadi karakter yang sadar diri, menertawakan para penciptanya.`;
+          break;
+        case "absurd":
+          story = `Tidak ada yang menduga kata "${keyword}" bisa menjadi presiden. Namun semua AI setuju, dan dunia pun berjalan dengan logika yang absurd.`;
+          break;
+      }
+      
+      output.innerHTML = `<p>${story}</p>`;
+    }
+  </script>
+</body>
+</html>
