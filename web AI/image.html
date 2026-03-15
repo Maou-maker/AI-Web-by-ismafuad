@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Filter Studio - Gemini</title>
+    <style>
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { margin: 0; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .preview-area {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            position: relative;
+            border: 2px dashed #334155;
+        }
+
+        canvas { max-width: 100%; max-height: 600px; }
+
+        .upload-btn {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        .upload-btn:hover { opacity: 0.9; transform: scale(1.05); }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.9rem; color: #94a3b8; }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-reset { background: #ef4444; color: white; }
+        .btn-save { background: #22c55e; color: white; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AI Image Filter Studio</h1>
+    <p>Upload fotomu dan mainkan visualnya!</p>
+</header>
+
+<div class="container">
+    <div class="preview-area" id="dropZone">
+        <canvas id="canvas"></canvas>
+        <div id="placeholder">
+            <input type="file" id="uploadFile" hidden accept="image/*">
+            <label for="uploadFile" class="upload-btn">Pilih Gambar</label>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Brightness</label>
+            <input type="range" id="brightness" min="0" max="200" value="100">
+        </div>
+        <div class="control-group">
+            <label>Contrast</label>
+            <input type="range" id="contrast" min="0" max="200" value="100">
+        </div>
+        <div class="control-group">
+            <label>Grayscale</label>
+            <input type="range" id="grayscale" min="0" max="100" value="0">
+        </div>
+        <div class="control-group">
+            <label>Sepia</label>
+            <input type="range" id="sepia" min="0" max="100" value="0">
+        </div>
+        <div class="control-group">
+            <label>Blur (px)</label>
+            <input type="range" id="blur" min="0" max="20" value="0">
+        </div>
+        <div class="control-group">
+            <label>Hue Rotate (deg)</label>
+            <input type="range" id="hue" min="0" max="360" value="0">
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-reset" id="resetBtn">Reset</button>
+            <button class="btn btn-save" id="saveBtn">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const uploadFile = document.getElementById('uploadFile');
+    const placeholder = document.getElementById('placeholder');
+    const filters = document.querySelectorAll('input[type="range"]');
+    
+    let img = new Image();
+
+    uploadFile.addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                applyFilters();
+                placeholder.style.display = 'none';
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function applyFilters() {
+        if (!img.src) return;
+
+        const b = document.getElementById('brightness').value;
+        const c = document.getElementById('contrast').value;
+        const g = document.getElementById('grayscale').value;
+        const s = document.getElementById('sepia').value;
+        const bl = document.getElementById('blur').value;
+        const h = document.getElementById('hue').value;
+
+        ctx.filter = `brightness(${b}%) contrast(${c}%) grayscale(${g}%) sepia(${s}%) blur(${bl}px) hue-rotate(${h}deg)`;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+
+    filters.forEach(f => f.addEventListener('input', applyFilters));
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        filters.forEach(f => {
+            if(f.id === 'brightness' || f.id === 'contrast') f.value = 100;
+            else f.value = 0;
+        });
+        applyFilters();
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'gemini-edited-image.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+</script>
+
+</body>
+</html>
