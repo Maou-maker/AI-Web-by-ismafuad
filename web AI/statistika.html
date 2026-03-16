@@ -21,6 +21,7 @@ th,td{border:1px solid #334155;padding:8px;text-align:center}
 .result{font-size:18px;margin-top:10px}
 .steps{background:#020617;padding:15px;border-radius:8px;line-height:1.6}
 canvas{background:white;border-radius:8px;margin-top:20px}
+.graph-controls{margin-top:10px}
 footer{text-align:center;padding:15px;color:#94a3b8}
 </style>
 </head>
@@ -29,7 +30,7 @@ footer{text-align:center;padding:15px;color:#94a3b8}
 
 <header>
 <h1>Statistika Toolkit</h1>
-<p>Mean • Median • Modus • Variansi • Standar Deviasi • Skewness</p>
+<p>Mean • Median • Modus • Variansi • Standar Deviasi • Skewness • Grafik</p>
 </header>
 
 <div class="container">
@@ -60,20 +61,32 @@ footer{text-align:center;padding:15px;color:#94a3b8}
 
 <div class="card">
 <h2>Grafik Distribusi</h2>
+
+<div class="graph-controls">
+<button onclick="gambarHistogram()">Histogram</button>
+<button onclick="gambarOgiveKurang()">Ogive Kurang Dari</button>
+<button onclick="gambarOgiveLebih()">Ogive Lebih Dari</button>
+</div>
+
 <canvas id="chart"></canvas>
+
 </div>
 
 </div>
 
 <footer>
-Made with by Isma Fuad
+Made with ❤️ by Isma Fuad for Adia Sekar Gading
 </footer>
 
 <script>
 
 let chart
+let kelasData=[]
+let freqData=[]
+let midpointData=[]
 
 function addRow(){
+
 let div=document.createElement("div")
 
 div.innerHTML=`
@@ -89,6 +102,7 @@ document.getElementById("inputs").appendChild(div)
 addRow();addRow();addRow();addRow()
 
 function clearData(){
+
 let area=document.getElementById("inputs")
 area.innerHTML=""
 addRow();addRow();addRow()
@@ -98,16 +112,28 @@ document.getElementById("hasil").innerHTML=""
 document.getElementById("langkah").innerHTML=""
 
 if(chart) chart.destroy()
+
+kelasData=[]
+freqData=[]
+midpointData=[]
+
 }
 
 function midpoint(val){
+
 if(val.includes("-")){
+
 let p=val.split("-")
+
 let a=parseFloat(p[0])
 let b=parseFloat(p[1])
+
 return (a+b)/2
+
 }
+
 return parseFloat(val)
+
 }
 
 function hitung(){
@@ -116,6 +142,10 @@ let kelas=[...document.querySelectorAll('.kelas')].map(i=>i.value)
 let fs=[...document.querySelectorAll('.f')].map(i=>Number(i.value))
 
 let xs=kelas.map(midpoint)
+
+kelasData=kelas
+freqData=fs
+midpointData=xs
 
 let n=fs.reduce((a,b)=>a+b,0)
 
@@ -147,6 +177,7 @@ rows+=`<tr>
 </tr>`
 
 })
+
 
 document.getElementById("table").innerHTML=rows
 
@@ -198,25 +229,65 @@ S = √Variansi = ${sd.toFixed(3)}<br><br>
 
 document.getElementById("langkah").innerHTML=langkah
 
-buatGrafik(kelas,fs)
+
+gambarHistogram()
+
 }
 
-function buatGrafik(labels,data){
+function renderChart(type,labels,data){
 
 if(chart) chart.destroy()
 
 let ctx=document.getElementById("chart")
 
-chart=new Chart(ctx,{
- type:'bar',
+chart=new Chart(ctx,{ 
+ type:type,
  data:{
  labels:labels,
  datasets:[{
  label:'Frekuensi',
- data:data
+ data:data,
+ fill:false,
+ tension:0.2
  }]
  }
 })
+
+}
+
+function gambarHistogram(){
+
+renderChart('bar',kelasData,freqData)
+
+}
+
+function gambarOgiveKurang(){
+
+let kumulatif=[]
+
+freqData.reduce((a,b,i)=>{
+ let val=a+b
+ kumulatif.push(val)
+ return val
+},0)
+
+renderChart('line',kelasData,kumulatif)
+
+}
+
+function gambarOgiveLebih(){
+
+let total=freqData.reduce((a,b)=>a+b,0)
+
+let kumulatif=[]
+let sisa=total
+
+freqData.forEach(f=>{
+ kumulatif.push(sisa)
+ sisa-=f
+})
+
+renderChart('line',kelasData,kumulatif)
 
 }
 
