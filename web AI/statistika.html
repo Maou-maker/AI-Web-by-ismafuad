@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistika Toolkit - Isma Fuad</title>
+
+<style>
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:#0f172a;
+color:#e5e7eb;
+margin:0
+}
+
+header{
+background:#1e293b;
+padding:25px;
+text-align:center
+}
+
+h1{margin:0}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:20px
+}
+
+.card{
+background:#1e293b;
+border-radius:12px;
+padding:20px;
+margin-bottom:25px;
+box-shadow:0 0 10px rgba(0,0,0,0.3)
+}
+
+input{
+padding:7px;
+margin:4px;
+border-radius:6px;
+border:none;
+width:90px
+}
+
+button{
+padding:10px 14px;
+border:none;
+border-radius:6px;
+background:#38bdf8;
+color:black;
+font-weight:bold;
+cursor:pointer;
+margin:5px
+}
+
+button:hover{
+background:#0ea5e9
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px
+}
+
+th,td{
+border:1px solid #334155;
+padding:8px;
+text-align:center
+}
+
+.result{
+font-size:18px;
+margin-top:10px
+}
+
+.steps{
+background:#020617;
+padding:15px;
+border-radius:8px;
+line-height:1.6
+}
+
+footer{
+text-align:center;
+padding:15px;
+color:#94a3b8
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Statistika Toolkit</h1>
+<p>Alat bantu belajar statistika untuk mahasiswa</p>
+<p>Mean • Median • Modus • Variansi • Standar Deviasi • Skewness</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>Input Data Berkelompok</h2>
+<p>Masukkan <b>nilai tengah (x)</b> dan <b>frekuensi (f)</b></p>
+<div id="inputs"></div>
+
+<button onclick="addRow()">Tambah Baris</button>
+<button onclick="clearData()">Reset</button>
+<button onclick="hitung()">Hitung Statistika</button>
+</div>
+
+<div class="card">
+<h2>Tabel Perhitungan</h2>
+<table id="table"></table>
+</div>
+
+<div class="card">
+<h2>Hasil Perhitungan</h2>
+<div class="result" id="hasil"></div>
+</div>
+
+<div class="card">
+<h2>Langkah Penyelesaian</h2>
+<div class="steps" id="langkah"></div>
+</div>
+
+</div>
+
+<footer>
+Made with ❤️ by Isma Fuad for Adia Sekar Gading
+</footer>
+
+<script>
+
+function addRow(){
+
+let div=document.createElement("div");
+
+div.innerHTML=`
+Nilai Tengah (x)
+<input type='number' class='x'>
+Frekuensi (f)
+<input type='number' class='f'>
+`;
+
+document.getElementById("inputs").appendChild(div);
+
+}
+
+addRow();addRow();addRow();addRow();
+
+function clearData(){
+
+let area=document.getElementById("inputs");
+area.innerHTML="";
+
+addRow();addRow();addRow();
+
+document.getElementById("table").innerHTML="";
+
+document.getElementById("hasil").innerHTML="";
+
+document.getElementById("langkah").innerHTML="";
+
+}
+
+function hitung(){
+
+let xs=[...document.querySelectorAll('.x')].map(i=>Number(i.value));
+let fs=[...document.querySelectorAll('.f')].map(i=>Number(i.value));
+
+if(xs.includes(0)||fs.includes(0)){
+}
+
+let n=fs.reduce((a,b)=>a+b,0);
+
+let fx=xs.map((x,i)=>x*fs[i]);
+
+let sumfx=fx.reduce((a,b)=>a+b,0);
+
+let mean=sumfx/n;
+
+let rows="<tr><th>x</th><th>f</th><th>fx</th><th>x - mean</th><th>(x-mean)^2</th><th>f(x-mean)^2</th></tr>";
+
+let totalVar=0;
+
+xs.forEach((x,i)=>{
+
+let diff=x-mean;
+
+let sq=diff*diff;
+
+let fvar=fs[i]*sq;
+
+totalVar+=fvar;
+
+rows+=`<tr>
+<td>${x}</td>
+<td>${fs[i]}</td>
+<td>${fx[i]}</td>
+<td>${diff.toFixed(3)}</td>
+<td>${sq.toFixed(3)}</td>
+<td>${fvar.toFixed(3)}</td>
+</tr>`;
+
+});
+
+
+document.getElementById("table").innerHTML=rows;
+
+let variance=totalVar/(n-1);
+
+let sd=Math.sqrt(variance);
+
+let mode=xs[fs.indexOf(Math.max(...fs))];
+
+let skew=(mean-mode)/sd;
+
+let median=mean;
+
+
+let jenis="";
+
+if(skew>0) jenis="Distribusi miring ke kanan (positif)";
+else if(skew<0) jenis="Distribusi miring ke kiri (negatif)";
+else jenis="Distribusi simetris";
+
+
+document.getElementById("hasil").innerHTML=`
+Mean = ${mean.toFixed(3)} <br>
+Median ≈ ${median.toFixed(3)} <br>
+Modus ≈ ${mode} <br>
+Variansi = ${variance.toFixed(3)} <br>
+Standar Deviasi = ${sd.toFixed(3)} <br>
+Skewness Pearson = ${skew.toFixed(3)} <br><br>
+<b>${jenis}</b>
+`;
+
+
+let langkah=`
+<b>1. Menghitung Mean</b><br>
+Mean = Σfx / n <br>
+Σfx = ${sumfx} <br>
+n = ${n} <br>
+Mean = ${mean.toFixed(3)} <br><br>
+
+<b>2. Menghitung Variansi</b><br>
+Variansi = Σf(x-mean)² / (n-1)<br>
+Σf(x-mean)² = ${totalVar.toFixed(3)}<br>
+Variansi = ${variance.toFixed(3)}<br><br>
+
+<b>3. Menghitung Standar Deviasi</b><br>
+S = √Variansi<br>
+S = ${sd.toFixed(3)}<br><br>
+
+<b>4. Menghitung Kemiringan Pearson</b><br>
+α = (Mean - Modus) / S<br>
+α = (${mean.toFixed(3)} - ${mode}) / ${sd.toFixed(3)}<br>
+α = ${skew.toFixed(3)}<br><br>
+
+<b>Kesimpulan:</b><br>
+${jenis}
+`;
+
+
+document.getElementById("langkah").innerHTML=langkah;
+
+}
+
+</script>
+
+</body>
+</html>
